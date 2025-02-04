@@ -1,9 +1,9 @@
 :root {
-    --primary-color: #3a4d95;
-    --secondary-color: #5b6db0;
+    --primary-color: #5d5340;
+    --secondary-color: #8ca87c;
     --accent-color: #ffd700;
     --text-light: #ffffff;
-    --transition-speed: 0.3s;
+    --transition-speed: 0.4s;
   }
   
   .nav-header {
@@ -27,7 +27,7 @@
   }
   
   .logo {
-    width: 120px;
+    width: 200px;
     height: auto;
     transition: filter var(--transition-speed) ease;
   }

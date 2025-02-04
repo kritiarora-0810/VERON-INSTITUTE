@@ -1,96 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import './Carousel.css';
-import next from '../../assets/right-arrow.png';
-import prev from '../../assets/left-arrow.png';
 
-const Carousel = ({ autoSlide = true, slideInterval = 3000 }) => {
-  const [slides, setSlides] = useState([
-    {
-      id: 1,
-      image: 'https://www.pw.live/exams/wp-content/uploads/2024/02/Importance-Of-Rank-Predictor-For-JEE-Main-jpg.webp',
-      alt_text: 'Slide 1',
-    },
-    {
-      id: 2,
-      image: 'https://www.pw.live/exams/wp-content/uploads/2024/02/Benefits-Of-JEE-Rank-Predictor-jpg.webp',
-      alt_text: 'Slide 2',
-    },
-    {
-      id: 3,
-      image: 'https://www.pw.live/exams/wp-content/uploads/2024/02/List-Of-Colleges-For-50-60-Percentile-In-JEE-jpg.webp',
-      alt_text: 'Slide 3',
-    },
-  ]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  // useEffect(() => {
-  //   const fetchCarouselImages = async () => {
-  //     try {
-  //       const response = await fetch(`${BASE_URL}/admin_panel/list_carousel_images/`, {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //         body: JSON.stringify({}),
-  //       });
-  //       if (!response.ok) {
-  //         throw new Error('Failed to fetch data');
-  //       }
-  //       const data = await response.json();
-  //       setSlides(data.carousel_images);
-  //       setLoading(false);
-  //     } catch (error) {
-  //       setError(error.message);
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchCarouselImages();
-  // }, []);
+const Carousel = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    { id: 1, content: 'Slide 1', backgroundColor: '#ffcccc' },
+    { id: 2, content: 'Slide 2', backgroundColor: '#ccffcc' },
+    { id: 3, content: 'Slide 3', backgroundColor: '#ccccff' },
+    { id: 4, content: 'Slide 4', backgroundColor: '#ffffcc' },
+  ];
+
+  // Add a clone of the first slide at the end for seamless looping
+  const slidesWithClone = [...slides, slides[0]];
+
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === slides.length - 1 ? 0 : prevIndex + 1
-    );
+    setCurrentSlide((prev) => {
+      if (prev === slides.length) {
+        // If we're at the clone (last slide), reset to the first slide without animation
+        return 0;
+      }
+      return prev + 1;
+    });
   };
+
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? slides.length - 1 : prevIndex - 1
-    );
+    setCurrentSlide((prev) => {
+      if (prev === 0) {
+        // If we're at the first slide, jump to the clone (last slide) without animation
+        return slides.length;
+      }
+      return prev - 1;
+    });
   };
+
+  // Automatically advance the slide every 3 seconds
   useEffect(() => {
-    let interval;
-    if (autoSlide && slides.length > 0) {
-      interval = setInterval(() => {
-        nextSlide();
-      }, slideInterval);
-    }
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 3000); // Change slide every 3 seconds
+
+    // Clear the interval when the component unmounts
     return () => clearInterval(interval);
-  }, [currentIndex, autoSlide, slideInterval, slides.length]);
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  }, [currentSlide]);
+
+  // Reset the transition when jumping from the clone to the first slide
+  useEffect(() => {
+    if (currentSlide === slides.length) {
+      const timeout = setTimeout(() => {
+        setCurrentSlide(0);
+      }, 500); // Wait for the transition to complete before resetting
+
+      return () => clearTimeout(timeout);
+    }
+  }, [currentSlide]);
+
   return (
     <div className="carousel">
-      <button className="prev btn" onClick={prevSlide}>
-        <img src={prev} className="arrow" />
-      </button>
-      <div className="carousel-content" style={{ transform: `translateX(${-currentIndex * 100}%)` }}>
-        {slides.map((slide, index) => (
-          <div key={slide.id} className="carousel-slide">
-            <img src={slide.image} alt={slide.alt_text} className="carousel-image" loading="lazy" />
+      <div
+        className="slides"
+        style={{
+          transform: `translateX(-${currentSlide * (100 / slidesWithClone.length)}%)`,
+          transition: currentSlide === slides.length ? 'none' : 'transform 0.5s ease-in-out',
+        }}
+      >
+        {slidesWithClone.map((slide, index) => (
+          <div
+            key={index} // Use index as key since the first slide is duplicated
+            className="slide"
+            style={{ backgroundColor: slide.backgroundColor }}
+          >
+            {slide.content}
           </div>
         ))}
       </div>
-      <div className="carousel-dots">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            className={`dot ${index === currentIndex ? 'active' : ''}`}
-            onClick={() => setCurrentIndex(index)}
-          />
-        ))}
-      </div>
-      <button className="next btn" onClick={nextSlide}>
-        <img src={next} className="arrow" />
+      <button className="prev" onClick={prevSlide}>
+        &#10094;
+      </button>
+      <button className="next" onClick={nextSlide}>
+        &#10095;
       </button>
     </div>
   );
