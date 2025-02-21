@@ -1,5 +1,5 @@
 :root {
-    --primary-color: #5d5340;
+    --primary-color: #50483b;
     --secondary-color: #8ca87c;
     --accent-color: #ffd700;
     --text-light: #ffffff;
@@ -7,6 +7,7 @@
   }
   
   .nav-header {
+    height: 100px;
     background-color: var(--primary-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     position: relative;
@@ -15,11 +16,10 @@
   
   .nav-container {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem 2%;
   }
   
   .logo-container {
