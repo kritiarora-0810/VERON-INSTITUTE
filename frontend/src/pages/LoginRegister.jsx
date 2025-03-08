@@ -1,202 +1,241 @@
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar/Navbar";
-import Footer from "../components/Footer/Footer";
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaUser, FaLock, FaEnvelope, FaPhone, FaUserGraduate } from 'react-icons/fa';
+import Navbar from '../components/Navbar/Navbar';
+import Footer from '../components/Footer/Footer';
+
 
 const LoginRegister = () => {
-    const navigate = useNavigate();
-    const [isLogin, setIsLogin] = useState(true);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [phone, setPhone] = useState("");
-    const [error, setError] = useState(null);
+  const [isLogin, setIsLogin] = useState(true);
+  const [loginData, setLoginData] = useState({ email: '', password: '' });
+  const [registerData, setRegisterData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone_number: '',
+    password: ''
+  });
 
-    // useEffect(() => {
-    //     const token = localStorage.getItem("token");
-    //     if (token) {
-    //         navigate("/", { replace: true });
-    //     }
-    // }, []);
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.15,
+        delayChildren: 0.2
+      }
+    },
+    exit: { opacity: 0 }
+  };
 
-    const toggleForm = () => {
-        setIsLogin(!isLogin);
-        if (!isLogin) {
-            setEmail("");
-            setPassword("");
-            setFirstName("");
-            setLastName("");
-            setPhone("");
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { type: 'spring', stiffness: 100 }
+    },
+    exit: { opacity: 0, y: -20 }
+  };
+
+  const handleLoginChange = (e) => {
+    setLoginData({ ...loginData, [e.target.name]: e.target.value });
+  };
+
+  const handleRegisterChange = (e) => {
+    setRegisterData({ ...registerData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e, isLogin) => {
+    e.preventDefault();
+    const formData = new FormData();
+    const endpoint = isLogin 
+      ? 'http://127.0.0.1:8000/user/user_login/'
+      : 'http://127.0.0.1:8000/user/user_register/';
+
+    if (isLogin) {
+      formData.append('email', loginData.email);
+      formData.append('password', loginData.password);
+    } else {
+      Object.entries(registerData).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+    }
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        if (isLogin) {
+          localStorage.setItem('token', data.token);
+          alert('Successfully logged in!');
+        } else {
+          alert('Registration successful!');
+          setIsLogin(true);
         }
-    };
+      } else {
+        alert(data.error || 'Invalid credentials');
+      }
+    } catch (error) {
+      alert('An error occurred. Please try again.');
+    }
+  };
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch(`http://localhost:8000/job_analysis/user_login/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                }),
-            });
+  return (
+    <>
+    <Navbar />
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="hidden md:block w-1/2 max-w-xl h-full flex items-center justify-center mr-8"
+      >
+        <img 
+          src="src/assets/jee_withoutbg.png" 
+          alt="Logo"
+          className="w-full h-auto max-h-[600px] object-contain"
+        />
+      </motion.div>
 
-            const data = await response.json();
+      <motion.div className="w-full md:w-1/2 max-w-md bg-white rounded-2xl shadow-xl p-8">
+        <div className="flex gap-4 mb-8">
+          <button
+            onClick={() => setIsLogin(true)}
+            className={`flex-1 py-3 rounded-xl text-lg font-medium transition-all duration-300 ${
+              isLogin 
+                ? 'bg-[#f97316] text-white shadow-md'
+                : 'bg-gray-100 text-[#50483b] hover:bg-gray-200'
+            }`}
+          >
+            Login
+          </button>
+          <button
+            onClick={() => setIsLogin(false)}
+            className={`flex-1 py-3 rounded-xl text-lg font-medium transition-all duration-300 ${
+              !isLogin 
+                ? 'bg-[#f97316] text-white shadow-md'
+                : 'bg-gray-100 text-[#50483b] hover:bg-gray-200'
+            }`}
+          >
+            Register
+          </button>
+        </div>
 
-            if (data.error) {
-                setError(data.error);
-            } else {
-                const userResponse = await fetch(`http://localhost:8000/job_analysis/user_details/`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${data.token}`,
-                    },
-                });
-                const userData = await userResponse.json();
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("user", JSON.stringify(userData.user));
-                navigate("/", { replace: true });
-            }
-        } catch (error) {
-            setError(error.message);
-        }
-    };
-
-    const handleRegister = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch(`http://localhost:8000/job_analysis/user_register/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                    first_name: firstName,
-                    last_name: lastName,
-                    phone_number: phone,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (data.error) {
-                setError(data.error);
-            } else {
-                localStorage.setItem("token", data.token);
-                setIsLogin(true);
-            }
-        } catch (error) {
-            setError(error.message);
-        }
-    };
-
-    return (
-        <>
-            <Navbar />
-            <div className="min-h-screen bg-gradient-to-r from-[#ffcc80] to-[#00796b] flex flex-col justify-center items-center">
-                <motion.div
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="container mx-auto p-8 flex flex-col items-center"
-                >
-                    <div className="w-full max-w-xl bg-white/10 backdrop-blur-lg p-10 rounded-xl shadow-lg border border-white/20">
-                        <motion.h1
-                            key={isLogin ? "login" : "register"}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.5 }}
-                            className="text-3xl font-extrabold text-white text-center mb-6"
-                        >
-                            {isLogin ? "Login" : "Register"}
-                        </motion.h1>
-                        <motion.form
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                            onSubmit={isLogin ? handleLogin : handleRegister}
-                        >
-                            {!isLogin && (
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label className="block text-white text-sm font-medium mb-1">First Name</label>
-                                        <input
-                                            type="text"
-                                            value={firstName}
-                                            onChange={(e) => setFirstName(e.target.value)}
-                                            className="w-full px-4 py-2 bg-white border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-white text-sm font-medium mb-1">Last Name</label>
-                                        <input
-                                            type="text"
-                                            value={lastName}
-                                            onChange={(e) => setLastName(e.target.value)}
-                                            className="w-full px-4 py-2 bg-white border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                    <div className="col-span-2"> {/* New field for phone number */}
-                                        <label className="block text-white text-sm font-medium mb-1">Phone Number</label>
-                                        <input
-                                            type="tel"
-                                            value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
-                                            className="w-full px-4 py-2 bg-white border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                            <div className="mb-4">
-                                <label className="block text-white text-sm font-medium mb-1">Email</label>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-2 bg-white border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-white text-sm font-medium mb-1">Password</label>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-4 py-2 bg-white border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                            {error && <p className="text-red-500 text-sm my-2">{error}</p>}
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="w-full bg-[#00796b] hover:bg-[#005f56] text-white py-2 px-4 rounded-lg font-bold text-lg transition-all"
-                            >
-                                {isLogin ? "Login" : "Register"}
-                            </motion.button>
-                        </motion.form>
-                        <div className="mt-4 text-center">
-                            <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                className="text-white text-sm font-bold hover:text-blue-400"
-                                onClick={toggleForm}
-                            >
-                                {isLogin ? "Create a new account" : "Already have an account?"}
-                            </motion.button>
-                        </div>
-                    </div>
+        <AnimatePresence mode='wait'>
+          <motion.div
+            key={isLogin ? 'login' : 'register'}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="space-y-6"
+          >
+            {!isLogin && (
+              <>
+                <motion.div variants={itemVariants} className="relative">
+                  <FaUserGraduate className="absolute top-4 left-4 text-[#50483b] text-lg" />
+                  <input
+                    type="text"
+                    name="first_name"
+                    placeholder="First Name"
+                    className="w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:border-[#f97316]"
+                    value={registerData.first_name}
+                    onChange={handleRegisterChange}
+                  />
                 </motion.div>
-            </div>
-            <Footer />
-        </>
-    );
+
+                <motion.div variants={itemVariants} className="relative">
+                  <FaUserGraduate className="absolute top-4 left-4 text-[#50483b] text-lg" />
+                  <input
+                    type="text"
+                    name="last_name"
+                    placeholder="Last Name"
+                    className="w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:border-[#f97316]"
+                    value={registerData.last_name}
+                    onChange={handleRegisterChange}
+                  />
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="relative">
+                  <FaPhone className="absolute top-4 left-4 text-[#50483b] text-lg" />
+                  <input
+                    type="text"
+                    name="phone_number"
+                    placeholder="Phone Number"
+                    className="w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:border-[#f97316]"
+                    value={registerData.phone_number}
+                    onChange={handleRegisterChange}
+                  />
+                </motion.div>
+              </>
+            )}
+
+            <motion.div variants={itemVariants} className="relative">
+              <FaEnvelope className="absolute top-4 left-4 text-[#50483b] text-lg" />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                className="w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:border-[#f97316]"
+                value={isLogin ? loginData.email : registerData.email}
+                onChange={isLogin ? handleLoginChange : handleRegisterChange}
+              />
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="relative">
+              <FaLock className="absolute top-4 left-4 text-[#50483b] text-lg" />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                className="w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:border-[#f97316]"
+                value={isLogin ? loginData.password : registerData.password}
+                onChange={isLogin ? handleLoginChange : handleRegisterChange}
+              />
+            </motion.div>
+
+            {isLogin && (
+              <motion.div variants={itemVariants} className="text-right -mt-4">
+                <button
+                  type="button"
+                  className="text-sm text-[#f97316] hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </motion.div>
+            )}
+
+            <motion.div variants={itemVariants}>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="w-full bg-[#f97316] text-white py-3 rounded-xl text-lg font-semibold shadow-md hover:bg-[#ea580c] transition-colors"
+                onClick={(e) => handleSubmit(e, isLogin)}
+              >
+                {isLogin ? 'Sign In' : 'Create Account'}
+              </motion.button>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="mt-6 text-center">
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-[#50483b] font-medium hover:text-[#f97316] transition-colors"
+              >
+                {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
+              </button>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+      </motion.div>
+    </div>
+    <Footer />
+    </>
+  );
 };
 
 export default LoginRegister;
