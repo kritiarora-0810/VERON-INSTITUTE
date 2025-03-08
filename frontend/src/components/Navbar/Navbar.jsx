@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Navbar.css';
 import mylogo from '../../assets/logo.png';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,8 +24,10 @@ const Navbar = () => {
         <div className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
           <ul className="nav-list">
             <li>
-              <a className="nav-link" href="#">
+              <a className="nav-link">
+              <Link to="/">
                 <span>Home</span>
+                </Link>
               </a>
             </li>
             <li>
@@ -52,9 +55,11 @@ const Navbar = () => {
         </div>
         
         <div className="nav-actions">
-          <button className="login-button">
-            Login/Signup
-          </button>
+          <Link to="/login-register">
+            <button className="login-button">
+              Login/Signup
+            </button>
+          </Link>
           <ion-icon
             onClick={toggleMenu}
             name={isMenuOpen ? "close" : "menu"}
