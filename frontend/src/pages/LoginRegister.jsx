@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaLock, FaEnvelope, FaPhone, FaUserGraduate } from 'react-icons/fa';
 import Navbar from '../components/Navbar/Navbar';
 import Footer from '../components/Footer/Footer';
-
+import logo from '../assets/jee_withoutbg.png'
 
 const LoginRegister = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -95,7 +95,7 @@ const LoginRegister = () => {
         className="hidden md:block w-1/2 max-w-xl h-full flex items-center justify-center mr-8"
       >
         <img 
-          src="src/assets/jee_withoutbg.png" 
+          src={logo}
           alt="Logo"
           className="w-full h-auto max-h-[600px] object-contain"
         />
