@@ -78,7 +78,7 @@ const LoginRegister = () => {
           setIsLogin(true);
         }
       } else {
-        alert(data.error || 'Invalid credentials');
+        alert(data.message || 'Invalid credentials');
       }
     } catch (error) {
       alert('An error occurred. Please try again.');
